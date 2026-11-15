@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 
 /// Polished empty-state widget for tables, lists, and filter results.
-/// Matches Stark Group enterprise visual styling with high visual clarity.
+/// Matches corporate business visual styling with high visual clarity.
 class EmptyStateWidget extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -31,43 +31,43 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
+        constraints: const BoxConstraints(maxWidth: 480),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Dual-ring icon container with Stark design accents
+              // Clean icon container
               Container(
-                width: 80,
-                height: 80,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    width: 4,
+                    color: AppColors.primaryContainer,
+                    width: 2,
                   ),
                 ),
                 child: Center(
                   child: Icon(
                     icon,
-                    size: 38,
+                    size: 34,
                     color: AppColors.primary,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Title
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.starkDark,
-                  letterSpacing: -0.3,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.2,
                 ),
               ),
               const SizedBox(height: 8),
@@ -85,7 +85,7 @@ class EmptyStateWidget extends StatelessWidget {
 
               // Active filter tags if any
               if (activeFilters != null && activeFilters!.isNotEmpty) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 Wrap(
                   alignment: WrapAlignment.center,
                   spacing: 8,
@@ -96,7 +96,7 @@ class EmptyStateWidget extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.borderMedium),
+                        border: Border.all(color: AppColors.borderLight),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -108,7 +108,7 @@ class EmptyStateWidget extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.starkDark,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -120,7 +120,7 @@ class EmptyStateWidget extends StatelessWidget {
 
               // Action buttons row
               if (actionLabel != null || secondaryActionLabel != null) ...[
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
                 Wrap(
                   spacing: 12,
                   runSpacing: 10,
@@ -132,7 +132,7 @@ class EmptyStateWidget extends StatelessWidget {
                         icon: const Icon(Icons.refresh, size: 16),
                         label: Text(actionLabel!),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                         ),
                       ),
                     if (secondaryActionLabel != null && onSecondaryAction != null)
@@ -141,7 +141,7 @@ class EmptyStateWidget extends StatelessWidget {
                         icon: const Icon(Icons.add, size: 16),
                         label: Text(secondaryActionLabel!),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         ),
                       ),
                   ],

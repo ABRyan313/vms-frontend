@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 /// Central theme configuration for the VMS Admin Portal.
-/// Implements Material 3 with Stark Group desktop-optimized styling.
+/// Implements Material 3 with a clean, professional corporate design system.
 class AppTheme {
-  /// Light Theme (Default for Admin Portal)
+  /// Light Theme (Default for Corporate Admin Portal)
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
-      secondary: AppColors.starkDark,
+      secondary: AppColors.secondary,
       surface: AppColors.surfaceLight,
       brightness: Brightness.light,
     );
@@ -19,7 +19,7 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.backgroundLight,
 
-      // Card Theme (Crisp industrial cards)
+      // Card Theme (Clean white cards with subtle borders)
       cardTheme: CardThemeData(
         elevation: 0,
         color: AppColors.surfaceLight,
@@ -30,16 +30,16 @@ class AppTheme {
         margin: EdgeInsets.zero,
       ),
 
-      // App Bar Theme
+      // App Bar Theme (Clean, unadorned header)
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surfaceLight,
-        foregroundColor: AppColors.starkDark,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: AppColors.starkDark,
+          color: AppColors.textPrimary,
           letterSpacing: -0.2,
         ),
       ),
@@ -90,30 +90,31 @@ class AppTheme {
         ),
       ),
 
-      // Primary Button Theme
+      // Primary Button Theme (Corporate Blue)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
           textStyle: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
+            letterSpacing: 0.1,
           ),
         ),
       ),
 
-      // Outlined Button Theme
+      // Outlined Button Theme (Subtle border with dark text)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.starkDark,
+          foregroundColor: AppColors.textPrimary,
+          backgroundColor: Colors.white,
           side: const BorderSide(color: AppColors.borderMedium),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -124,21 +125,36 @@ class AppTheme {
         ),
       ),
 
-      // Data Table Theme
+      // Text Button Theme
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      // Data Table Theme (Professional corporate data grid)
       dataTableTheme: DataTableThemeData(
-        headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
+        headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
         headingTextStyle: const TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w800,
-          color: AppColors.starkSteel,
-          letterSpacing: 0.8,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textSecondary,
+          letterSpacing: 0.5,
         ),
         dataTextStyle: const TextStyle(
           fontSize: 13,
           color: AppColors.textPrimary,
         ),
         horizontalMargin: 20,
-        columnSpacing: 28,
+        columnSpacing: 24,
         dividerThickness: 1,
       ),
 
@@ -151,11 +167,11 @@ class AppTheme {
     );
   }
 
-  /// Dark Theme (For dark mode support in the admin portal)
+  /// Dark Theme
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.primary,
-      primary: const Color(0xFFFB923C), // Lighter orange for dark mode
+      primary: const Color(0xFF60A5FA), // Lighter corporate blue for dark mode
       secondary: const Color(0xFF94A3B8),
       surface: AppColors.surfaceDark,
       brightness: Brightness.dark,
@@ -198,7 +214,7 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.borderDark),
         ),
         focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Color(0xFFFB923C), width: 2),
+          borderSide: BorderSide(color: Color(0xFF60A5FA), width: 2),
         ),
         hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
       ),
@@ -206,16 +222,16 @@ class AppTheme {
         headingRowColor: WidgetStateProperty.all(const Color(0xFF1E293B)),
         headingTextStyle: const TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
           color: Color(0xFF94A3B8),
-          letterSpacing: 0.8,
+          letterSpacing: 0.5,
         ),
         dataTextStyle: const TextStyle(
           fontSize: 13,
           color: Color(0xFFE2E8F0),
         ),
         horizontalMargin: 20,
-        columnSpacing: 28,
+        columnSpacing: 24,
         dividerThickness: 1,
       ),
       dividerTheme: const DividerThemeData(

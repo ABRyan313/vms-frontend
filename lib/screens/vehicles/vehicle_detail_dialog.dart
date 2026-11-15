@@ -4,6 +4,7 @@ import '../../models/vehicle_model.dart';
 import '../../widgets/status_badge.dart';
 
 /// Clean detail modal presenting full technical specifications of a vehicle.
+/// Consistent corporate blue styling and clean typography.
 class VehicleDetailDialog extends StatelessWidget {
   final Vehicle vehicle;
 
@@ -22,22 +23,25 @@ class VehicleDetailDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-      actionsPadding: const EdgeInsets.all(20),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.directions_car, color: AppColors.primary),
+                child: const Icon(Icons.directions_car, color: AppColors.primary, size: 22),
               ),
               const SizedBox(width: 14),
               Column(
@@ -45,11 +49,19 @@ class VehicleDetailDialog extends StatelessWidget {
                 children: [
                   Text(
                     vehicle.displayName,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   Text(
-                    'Plate: ${vehicle.plateNumber}',
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                    'Vehicle Plate: ${vehicle.plateNumber}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -59,21 +71,24 @@ class VehicleDetailDialog extends StatelessWidget {
         ],
       ),
       content: SizedBox(
-        width: 520,
+        width: 480,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Divider(),
+              const Divider(height: 1),
               const SizedBox(height: 16),
 
-              // Grid of specifications
+              // Specifications list
+              _buildSpecRow('Vehicle Number', vehicle.plateNumber),
               _buildSpecRow('VIN Number', vehicle.vin),
-              _buildSpecRow('Category / Type', vehicle.type.label),
+              _buildSpecRow('Brand / Manufacturer', vehicle.make),
+              _buildSpecRow('Model Variant', vehicle.model),
+              _buildSpecRow('Category', vehicle.type.label),
               _buildSpecRow('Fuel / Powertrain', vehicle.fuelType.label),
-              _buildSpecRow('Current Odometer', '${vehicle.mileage.toString()} km'),
+              _buildSpecRow('Odometer Reading', '${vehicle.mileage.toString()} km'),
               _buildSpecRow('Assigned Driver', vehicle.assignedDriver ?? 'Unassigned'),
-              _buildSpecRow('Current Location', vehicle.location ?? 'Depot Main Yard'),
+              _buildSpecRow('Current Location', vehicle.location ?? 'Central Depot'),
               _buildSpecRow(
                 'Last Service Date',
                 vehicle.lastServiceDate != null
@@ -95,20 +110,23 @@ class VehicleDetailDialog extends StatelessWidget {
 
   Widget _buildSpecRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
           ),
           SelectableText(
             value,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF0F172A),
+              color: AppColors.textPrimary,
             ),
           ),
         ],

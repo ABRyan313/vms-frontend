@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../models/vehicle_model.dart';
 
-/// Semantic Material 3 status badge widget matching Stark Group specifications.
-/// High-contrast, easily scannable in fleet data tables.
+/// Semantic Material 3 status badge widget matching corporate design specifications.
+/// High contrast, easy scanning in tables and cards.
 class StatusBadge extends StatelessWidget {
   final VehicleStatus status;
   final bool compact;
@@ -24,29 +24,29 @@ class StatusBadge extends StatelessWidget {
       case VehicleStatus.active:
         textColor = AppColors.statusActive;
         bgColor = AppColors.statusActiveBg;
-        borderColor = const Color(0xFF86EFAC); // Soft emerald green border
+        borderColor = AppColors.statusActiveBorder;
         break;
       case VehicleStatus.inMaintenance:
         textColor = AppColors.statusMaintenance;
         bgColor = AppColors.statusMaintenanceBg;
-        borderColor = const Color(0xFFFDE68A); // Soft amber border
+        borderColor = AppColors.statusMaintenanceBorder;
         break;
       case VehicleStatus.outOfService:
         textColor = AppColors.statusOutOfService;
         bgColor = AppColors.statusOutOfServiceBg;
-        borderColor = const Color(0xFFFECACA); // Soft red border
+        borderColor = AppColors.statusOutOfServiceBorder;
         break;
       case VehicleStatus.reserved:
         textColor = AppColors.statusReserved;
         bgColor = AppColors.statusReservedBg;
-        borderColor = const Color(0xFFDDD6FE); // Soft purple border
+        borderColor = AppColors.statusReservedBorder;
         break;
     }
 
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 9 : 12,
-        vertical: compact ? 4 : 6,
+        vertical: compact ? 4 : 5,
       ),
       decoration: BoxDecoration(
         color: bgColor,
@@ -69,9 +69,9 @@ class StatusBadge extends StatelessWidget {
             status.label,
             style: TextStyle(
               color: textColor,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               fontSize: compact ? 11 : 12,
-              letterSpacing: 0.2,
+              letterSpacing: 0.1,
             ),
           ),
         ],

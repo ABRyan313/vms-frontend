@@ -22,8 +22,8 @@ class NavItem {
 }
 
 /// Responsive Desktop-First Admin Application Shell.
-/// Features a permanent sidebar on desktop, adaptive drawer on mobile/tablet,
-/// top navigation bar with user profile & actions, and content area.
+/// Left-side navigation on desktop with main content on the right.
+/// Features a clear top bar with section header, system status, and user profile.
 class AppShell extends StatefulWidget {
   final int initialIndex;
 
@@ -47,7 +47,7 @@ class _AppShellState extends State<AppShell> {
       selectedIcon: Icons.dashboard,
     ),
     NavItem(
-      title: 'Vehicle Fleet',
+      title: 'Vehicles',
       icon: Icons.directions_car_outlined,
       selectedIcon: Icons.directions_car,
     ),
@@ -63,7 +63,6 @@ class _AppShellState extends State<AppShell> {
     setState(() {
       _currentIndex = index;
     });
-    // Close drawer if open on mobile
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -89,7 +88,6 @@ class _AppShellState extends State<AppShell> {
     final isDesktop = Responsive.isDesktop(context);
     final user = AuthRepository().currentUser;
 
-    // Body content pages based on selected nav index
     final pages = [
       DashboardScreen(
         onNavigateToVehicles: () => _onSelectNav(1),
@@ -102,10 +100,10 @@ class _AppShellState extends State<AppShell> {
       drawer: isDesktop ? null : _buildMobileDrawer(user),
       body: Row(
         children: [
-          // Permanent Desktop Sidebar
+          // Desktop Left-Side Navigation
           if (isDesktop) _buildDesktopSidebar(user),
 
-          // Main Content Area
+          // Main Workspace on the Right
           Expanded(
             child: Column(
               children: [
@@ -129,13 +127,13 @@ class _AppShellState extends State<AppShell> {
   Widget _buildTopAppBar(bool isDesktop, dynamic user) {
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       color: Colors.white,
       child: Row(
         children: [
           if (!isDesktop) ...[
             IconButton(
-              icon: const Icon(Icons.menu),
+              icon: const Icon(Icons.menu, color: AppColors.textPrimary),
               onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             const SizedBox(width: 8),
@@ -146,19 +144,21 @@ class _AppShellState extends State<AppShell> {
             _navItems[_currentIndex].title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.2,
             ),
           ),
 
           const Spacer(),
 
-          // System Status Pill
+          // System Status Pill (Green for active status)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppColors.statusActiveBg,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.statusActiveBorder),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -166,11 +166,11 @@ class _AppShellState extends State<AppShell> {
                 Icon(Icons.cloud_done_outlined, size: 14, color: AppColors.statusActive),
                 SizedBox(width: 6),
                 Text(
-                  'System Ready',
+                  'System Online',
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF475569),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.statusActive,
                   ),
                 ),
               ],
@@ -182,14 +182,14 @@ class _AppShellState extends State<AppShell> {
           Row(
             children: [
               CircleAvatar(
-                radius: 18,
+                radius: 17,
                 backgroundColor: AppColors.primary,
                 child: Text(
                   user?.avatarInitials ?? 'AD',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -203,15 +203,15 @@ class _AppShellState extends State<AppShell> {
                       user?.name ?? 'Alex Johnson',
                       style: const TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     Text(
-                      user?.role ?? 'Fleet Manager',
+                      user?.role ?? 'Fleet Administrator',
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF64748B),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -223,7 +223,7 @@ class _AppShellState extends State<AppShell> {
 
           // Logout Action Button
           IconButton(
-            icon: const Icon(Icons.logout, size: 20, color: Color(0xFF64748B)),
+            icon: const Icon(Icons.logout, size: 19, color: AppColors.textSecondary),
             tooltip: 'Sign Out',
             onPressed: _handleLogout,
           ),
@@ -232,7 +232,7 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  /// Permanent Modern Dark Sidebar for Desktop
+  /// Permanent Modern Deep Navy Sidebar for Desktop
   Widget _buildDesktopSidebar(dynamic user) {
     return Container(
       width: AppConstants.sidebarWidth,
@@ -265,8 +265,8 @@ class _AppShellState extends State<AppShell> {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
                       ),
                     ),
                     Text(
@@ -274,6 +274,7 @@ class _AppShellState extends State<AppShell> {
                       style: TextStyle(
                         color: Color(0xFF94A3B8),
                         fontSize: 11,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -281,18 +282,18 @@ class _AppShellState extends State<AppShell> {
               ],
             ),
           ),
-          const Divider(color: Color(0xFF334155), height: 1),
+          const Divider(color: Color(0xFF1E293B), height: 1),
 
           // Navigation Links
           const SizedBox(height: 16),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
             child: Text(
-              'MAIN MENU',
+              'MAIN NAVIGATION',
               style: TextStyle(
                 color: const Color(0xFF94A3B8).withValues(alpha: 0.7),
                 fontSize: 11,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 letterSpacing: 0.8,
               ),
             ),
@@ -300,14 +301,14 @@ class _AppShellState extends State<AppShell> {
           const SizedBox(height: 6),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               itemCount: _navItems.length,
               itemBuilder: (context, index) {
                 final item = _navItems[index];
                 final isSelected = _currentIndex == index;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
                   child: Material(
                     color: isSelected ? AppColors.sidebarSelected : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
@@ -315,20 +316,28 @@ class _AppShellState extends State<AppShell> {
                       onTap: () => _onSelectNav(index),
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: isSelected
+                              ? const Border(
+                                  left: BorderSide(color: AppColors.primary, width: 3),
+                                )
+                              : null,
+                        ),
                         child: Row(
                           children: [
                             Icon(
                               isSelected ? item.selectedIcon : item.icon,
-                              size: 20,
+                              size: 19,
                               color: isSelected ? Colors.white : const Color(0xFF94A3B8),
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 12),
                             Text(
                               item.title,
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                 color: isSelected ? Colors.white : const Color(0xFFCBD5E1),
                               ),
                             ),
@@ -343,7 +352,7 @@ class _AppShellState extends State<AppShell> {
           ),
 
           // Footer info
-          const Divider(color: Color(0xFF334155), height: 1),
+          const Divider(color: Color(0xFF1E293B), height: 1),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
@@ -366,7 +375,7 @@ class _AppShellState extends State<AppShell> {
             decoration: const BoxDecoration(color: Color(0xFF1E293B)),
             child: Row(
               children: [
-                const Icon(Icons.local_shipping, color: Colors.white, size: 32),
+                const Icon(Icons.local_shipping, color: Colors.white, size: 30),
                 const SizedBox(width: 12),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -415,8 +424,8 @@ class _AppShellState extends State<AppShell> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.logout, color: Color(0xFFEF4444)),
-            title: const Text('Sign Out', style: TextStyle(color: Color(0xFFEF4444))),
+            leading: const Icon(Icons.logout, color: AppColors.statusOutOfService),
+            title: const Text('Sign Out', style: TextStyle(color: AppColors.statusOutOfService)),
             onTap: _handleLogout,
           ),
           const SizedBox(height: 12),

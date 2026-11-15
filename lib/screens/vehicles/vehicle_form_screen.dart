@@ -8,6 +8,7 @@ import '../../widgets/status_badge.dart';
 
 /// Clean, responsive form screen for Registering or Editing a Fleet Vehicle.
 /// Focused on 4 core fields: Vehicle Number, Brand, Model, and Status.
+/// Corporate blue styling, clear validation, and consistent spacing.
 class VehicleFormScreen extends StatefulWidget {
   final Vehicle? vehicleToEdit;
 
@@ -32,7 +33,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
   bool get isEditMode => widget.vehicleToEdit != null;
 
-  // Common Stark Group fleet brands for quick selection
+  // Common fleet brands for quick selection
   static const List<String> _quickBrands = [
     'Volvo',
     'Scania',
@@ -132,7 +133,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         fuelType: FuelType.diesel,
         mileage: 0,
         assignedDriver: null,
-        location: 'Stark Central Depot',
+        location: 'Central Depot',
         lastServiceDate: DateTime.now(),
       );
       repo.addVehicle(newVehicle);
@@ -160,6 +161,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     final isMobile = Responsive.isMobile(context);
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         title: Row(
           children: [
@@ -178,19 +180,18 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
               isEditMode ? 'Edit Vehicle' : 'Register Vehicle',
               style: TextStyle(
                 fontSize: isMobile ? 15 : 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.starkDark,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
               ),
             ),
           ],
         ),
         actions: [
-          TextButton.icon(
+          OutlinedButton(
             onPressed: _handleCancel,
-            icon: const Icon(Icons.close, size: 18),
-            label: const Text('Cancel'),
+            child: const Text('Cancel'),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: ElevatedButton.icon(
@@ -338,7 +339,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderMedium),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -362,7 +363,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.starkDark,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
@@ -394,7 +395,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer,
+            color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: AppColors.primary, size: 20),
@@ -409,7 +410,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.starkDark,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -472,7 +473,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: AppColors.starkDark,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 6),
@@ -529,7 +530,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? AppColors.primary : AppColors.starkSteel,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
                 ),
               ),
             ),
@@ -562,7 +563,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: AppColors.starkDark,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 6),
@@ -579,8 +580,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
               child: Row(
                 children: [
                   Container(
-                    width: 9,
-                    height: 9,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
                       color: color,
                       shape: BoxShape.circle,
@@ -592,7 +593,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.starkDark,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -623,17 +624,16 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
             icon: const Icon(Icons.check, size: 18),
             label: Text(isEditMode ? 'Save Changes' : 'Register Vehicle'),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
           const SizedBox(height: 12),
-          OutlinedButton.icon(
+          OutlinedButton(
             onPressed: _handleCancel,
-            icon: const Icon(Icons.close, size: 18),
-            label: const Text('Cancel'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
+            child: const Text('Cancel'),
           ),
         ],
       );
@@ -642,22 +642,15 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        OutlinedButton.icon(
+        OutlinedButton(
           onPressed: _handleCancel,
-          icon: const Icon(Icons.close, size: 18),
-          label: const Text('Cancel'),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          ),
+          child: const Text('Cancel'),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
         ElevatedButton.icon(
           onPressed: _handleSave,
           icon: const Icon(Icons.check, size: 18),
           label: Text(isEditMode ? 'Save Changes' : 'Register Vehicle'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          ),
         ),
       ],
     );

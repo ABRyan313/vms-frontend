@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 
-/// Industrial KPI / Metric Card for Stark Group Admin Dashboard.
+/// Corporate KPI / Metric Card for Admin Dashboard.
+/// Clean white card with subtle border and high scannability.
 class MetricCard extends StatelessWidget {
   final String title;
   final String value;
@@ -43,11 +44,11 @@ class MetricCard extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary,
-                      letterSpacing: 0.6,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: iconBgColor,
                       borderRadius: BorderRadius.circular(8),
@@ -60,14 +61,14 @@ class MetricCard extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                   letterSpacing: -0.5,
                 ),
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   subtitle!,
                   style: const TextStyle(

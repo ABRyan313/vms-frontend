@@ -35,13 +35,13 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome & Quick Action Header
+              // Page Header with Clear Title & Primary Action
               _buildHeader(context),
               const SizedBox(height: 24),
 
               // KPI Metric Cards Grid
               _buildKpiGrid(context, total, active, maintenance, outOfService),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // Recent Fleet Overview Section
               Card(
@@ -60,8 +60,8 @@ class DashboardScreen extends StatelessWidget {
                                 'Fleet Activity Overview',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F172A),
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               SizedBox(height: 4),
@@ -69,7 +69,7 @@ class DashboardScreen extends StatelessWidget {
                                 'Most recently registered and updated fleet vehicles',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Color(0xFF64748B),
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -91,12 +91,15 @@ class DashboardScreen extends StatelessWidget {
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(minWidth: 800),
                           child: DataTable(
+                            headingRowHeight: 46,
+                            dataRowMinHeight: 56,
+                            dataRowMaxHeight: 60,
                             columns: const [
-                              DataColumn(label: Text('PLATE #')),
+                              DataColumn(label: Text('VEHICLE NUMBER')),
                               DataColumn(label: Text('VEHICLE')),
-                              DataColumn(label: Text('TYPE')),
+                              DataColumn(label: Text('CATEGORY')),
                               DataColumn(label: Text('STATUS')),
-                              DataColumn(label: Text('MILEAGE')),
+                              DataColumn(label: Text('ODOMETER')),
                               DataColumn(label: Text('DRIVER')),
                               DataColumn(label: Text('ACTION')),
                             ],
@@ -106,10 +109,23 @@ class DashboardScreen extends StatelessWidget {
                                   DataCell(
                                     Text(
                                       v.plateNumber,
-                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                        fontFamily: 'monospace',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        color: AppColors.textPrimary,
+                                      ),
                                     ),
                                   ),
-                                  DataCell(Text(v.displayName)),
+                                  DataCell(
+                                    Text(
+                                      v.displayName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
                                   DataCell(Text(v.type.label)),
                                   DataCell(StatusBadge(status: v.status, compact: true)),
                                   DataCell(Text('${v.mileage.toString()} km')),
@@ -118,6 +134,7 @@ class DashboardScreen extends StatelessWidget {
                                     IconButton(
                                       icon: const Icon(Icons.visibility_outlined, size: 18),
                                       tooltip: 'View Details',
+                                      color: AppColors.textSecondary,
                                       onPressed: () {
                                         VehicleDetailDialog.show(context, v);
                                       },
@@ -154,14 +171,15 @@ class DashboardScreen extends StatelessWidget {
               'Fleet Dashboard',
               style: TextStyle(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+                letterSpacing: -0.3,
               ),
             ),
             SizedBox(height: 4),
             Text(
               'Monitor fleet status, availability, and vehicle operational health.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -192,7 +210,7 @@ class DashboardScreen extends StatelessWidget {
         value: total.toString(),
         icon: Icons.directions_car,
         iconColor: AppColors.primary,
-        iconBgColor: AppColors.primaryContainer,
+        iconBgColor: AppColors.primaryLight,
         subtitle: 'All registered units',
         onTap: onNavigateToVehicles,
       ),
@@ -211,7 +229,7 @@ class DashboardScreen extends StatelessWidget {
         icon: Icons.build_outlined,
         iconColor: AppColors.statusMaintenance,
         iconBgColor: AppColors.statusMaintenanceBg,
-        subtitle: 'Scheduled or in bay',
+        subtitle: 'Scheduled service',
         onTap: onNavigateToVehicles,
       ),
       MetricCard(
