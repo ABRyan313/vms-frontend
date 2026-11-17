@@ -10,6 +10,7 @@ import '../../widgets/search_bar_widget.dart';
 import '../../widgets/status_badge.dart';
 import 'vehicle_detail_dialog.dart';
 import 'vehicle_form_screen.dart';
+import 'package:dio/dio.dart';
 
 /// Vehicle Management List Screen.
 /// Columns: Vehicle Number | Brand | Model | Status | Action (edit & delete icons).
@@ -29,6 +30,27 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   // Pagination state
   int _currentPage = 1;
   static const int _rowsPerPage = 10;
+
+  @override
+  void initState() {
+    super.initState();
+
+    VehicleRepository().fetchVehicles(
+      page: 0,
+      size: _rowsPerPage,
+    );
+  }
+
+  Future<void> _loadPage(int page) async {
+    setState(() {
+      _currentPage = page;
+    });
+
+    await VehicleRepository().fetchVehicles(
+      page: page - 1,
+      size: _rowsPerPage,
+    );
+  }
 
   @override
   void dispose() {
@@ -62,32 +84,83 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   }
 
   Future<void> _handleDelete(Vehicle vehicle) async {
-    final confirm = await ConfirmDialog.show(
-      context,
-      title: 'Delete Vehicle',
-      message:
-          'Are you sure you want to remove "${vehicle.displayName}" (${vehicle.plateNumber}) from the fleet? This action cannot be undone.',
-      confirmLabel: 'Delete Vehicle',
-      isDestructive: true,
-    );
+  final confirm = await ConfirmDialog.show(
+    context,
+    title: 'Delete Vehicle',
+    message:
+        'Are you sure you want to remove "${vehicle.displayName}" (${vehicle.plateNumber}) from the fleet? This action cannot be undone.',
+    confirmLabel: 'Delete Vehicle',
+    isDestructive: true,
+  );
 
-    if (confirm == true && mounted) {
-      VehicleRepository().deleteVehicle(vehicle.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Text('Vehicle "${vehicle.displayName}" (${vehicle.plateNumber}) removed.'),
-            ],
-          ),
-          backgroundColor: AppColors.statusOutOfService,
-          behavior: SnackBarBehavior.floating,
+  if (confirm != true || !mounted) return;
+
+  try {
+    await VehicleRepository().deleteVehicle(vehicle.id);
+
+    if (!mounted) return;
+
+    final repo = VehicleRepository();
+
+    // If the last vehicle on the current page was deleted,
+    // navigate to the previous page.
+    final nextPage = repo.vehicles.isEmpty && _currentPage > 1
+        ? _currentPage - 1
+        : _currentPage;
+
+    await _loadPage(nextPage);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Vehicle "${vehicle.displayName}" (${vehicle.plateNumber}) removed.',
+            ),
+          ],
         ),
-      );
-    }
+        backgroundColor: AppColors.statusOutOfService,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } on DioException catch (e) {
+    if (!mounted) return;
+
+    final responseData = e.response?.data;
+
+    final message = responseData is Map
+        ? (responseData['detail'] ??
+            responseData['message'] ??
+            'Failed to delete vehicle.')
+        : 'Failed to delete vehicle. Please try again.';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message.toString()),
+        backgroundColor: AppColors.statusOutOfService,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('An unexpected error occurred: $e'),
+        backgroundColor: AppColors.statusOutOfService,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -118,15 +191,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
           activeFilterTags.add('Category: ${_typeFilter!.label}');
         }
 
-        // Pagination calculations
-        final totalItems = filteredVehicles.length;
-        final totalPages = (totalItems / _rowsPerPage).ceil().clamp(1, 999);
+        // Pagination calculations. The backend returns one page at a time.
+        final totalItems = vehicleRepo.totalElements;
+        final totalPages = vehicleRepo.totalPages.clamp(1, 999);
         final safePage = _currentPage.clamp(1, totalPages);
         final startIndex = (safePage - 1) * _rowsPerPage;
-        final endIndex = (startIndex + _rowsPerPage).clamp(0, totalItems);
-        final pageItems = totalItems == 0
-            ? <Vehicle>[]
-            : filteredVehicles.sublist(startIndex, endIndex);
+        final visibleCount = filteredVehicles.length;
+        final endIndex = startIndex + visibleCount;
+        final pageItems = filteredVehicles;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -220,7 +292,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       child: Row(
                         children: [
                           Text(
-                            'Showing ${totalItems == 0 ? 0 : startIndex + 1}–$endIndex of $totalItems Vehicles',
+                            hasActiveFilters
+                                ? 'Showing $visibleCount matching vehicles on this page'
+                                : 'Showing ${visibleCount == 0 ? 0 : startIndex + 1}–$endIndex of $totalItems Vehicles',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -253,8 +327,38 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                     ),
                     const Divider(height: 1),
 
-                    // Content: empty state or table
-                    if (filteredVehicles.isEmpty)
+                    // Content: loading, error, empty state, or table
+                    if (vehicleRepo.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.all(48),
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (vehicleRepo.error != null)
+                      Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 40,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              vehicleRepo.error!,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () => _loadPage(_currentPage),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (filteredVehicles.isEmpty)
                       EmptyStateWidget(
                         icon: hasActiveFilters
                             ? Icons.search_off_outlined
@@ -370,7 +474,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                       ),
 
                     // ── Pagination ───────────────────────────────────────
-                    if (filteredVehicles.isNotEmpty)
+                    if (!vehicleRepo.isLoading &&
+                        vehicleRepo.error == null &&
+                        totalItems > 0)
                       _buildPagination(totalItems, totalPages, safePage),
                   ],
                 ),
@@ -630,14 +736,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                 icon: Icons.first_page,
                 tooltip: 'First page',
                 enabled: canPrev,
-                onTap: () => setState(() => _currentPage = 1),
+                onTap: () => _loadPage(1),
               ),
               // Previous page
               _pageButton(
                 icon: Icons.chevron_left,
                 tooltip: 'Previous page',
                 enabled: canPrev,
-                onTap: () => setState(() => _currentPage = currentPage - 1),
+                onTap: () => _loadPage(currentPage - 1),
               ),
 
               // Page number pills
@@ -658,7 +764,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: InkWell(
-                    onTap: () => setState(() => _currentPage = page),
+                    onTap: () => _loadPage(page),
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
                       width: 34,
@@ -693,14 +799,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
                 icon: Icons.chevron_right,
                 tooltip: 'Next page',
                 enabled: canNext,
-                onTap: () => setState(() => _currentPage = currentPage + 1),
+                onTap: () => _loadPage(currentPage + 1),
               ),
               // Last page
               _pageButton(
                 icon: Icons.last_page,
                 tooltip: 'Last page',
                 enabled: canNext,
-                onTap: () => setState(() => _currentPage = totalPages),
+                onTap: () => _loadPage(totalPages),
               ),
             ],
           ),

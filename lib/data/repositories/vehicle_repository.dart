@@ -1,22 +1,32 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../../models/vehicle_model.dart';
-import '../mock/mock_vehicles.dart';
 
-/// In-memory reactive repository managing Fleet Vehicle data.
-/// Uses ChangeNotifier so UI components automatically update when records change.
+import '../../models/vehicle_model.dart';
+import '../services/api_client.dart';
+
 class VehicleRepository extends ChangeNotifier {
   static final VehicleRepository _instance = VehicleRepository._internal();
+
   factory VehicleRepository() => _instance;
-  VehicleRepository._internal() {
-    _vehicles = List<Vehicle>.from(initialMockVehicles);
-  }
 
-  late List<Vehicle> _vehicles;
+  VehicleRepository._internal();
 
-  /// Returns an unmodifiable list of all vehicles.
+  List<Vehicle> _vehicles = [];
+
+  int _totalElements = 0;
+  int _totalPages = 0;
+  int _pageSize = 10;
+
+  bool _isLoading = false;
+  String? _error;
+
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
   List<Vehicle> get vehicles => List.unmodifiable(_vehicles);
+  int get totalElements => _totalElements;
+  int get totalPages => _totalPages;
 
-  // Fleet Statistics
   int get totalCount => _vehicles.length;
 
   int get activeCount =>
@@ -31,7 +41,45 @@ class VehicleRepository extends ChangeNotifier {
   int get reservedCount =>
       _vehicles.where((v) => v.status == VehicleStatus.reserved).length;
 
-  /// Find a vehicle by ID
+  Future<void> fetchVehicles({
+    int page = 0,
+    int size = 10,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await ApiClient.dio.get(
+        '/vehicles',
+        queryParameters: {
+          'page': page,
+          'size': size,
+        },
+      );
+
+      final data = response.data as Map<String, dynamic>;
+      final content = data['content'] as List<dynamic>;
+
+      _vehicles = content
+          .map(
+            (item) => Vehicle.fromApiJson(item as Map<String, dynamic>),
+          )
+          .toList();
+
+      _totalElements = (data['totalElements'] as num).toInt();
+      _totalPages = (data['totalPages'] as num).toInt();
+      _pageSize = size;
+    } on DioException catch (e) {
+      _error = e.response?.data?.toString() ?? e.message;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Vehicle? findById(String id) {
     try {
       return _vehicles.firstWhere((v) => v.id == id);
@@ -40,35 +88,61 @@ class VehicleRepository extends ChangeNotifier {
     }
   }
 
-  /// Add a new vehicle to the fleet
-  void addVehicle(Vehicle vehicle) {
-    _vehicles.insert(0, vehicle);
-    notifyListeners();
+  Future<void> addVehicle(Vehicle vehicle) async {
+    await ApiClient.dio.post(
+      '/vehicles',
+      data: {
+        'vehicleNumber': vehicle.plateNumber,
+        'brand': vehicle.make,
+        'model': vehicle.model,
+      },
+    );
+
+    // A newly registered vehicle should appear on the first page.
+    await fetchVehicles(page: 0, size: _pageSize);
   }
 
-  /// Update an existing vehicle's data
-  bool updateVehicle(Vehicle updated) {
+  Future<void> updateVehicle(Vehicle updated) async {
+    await ApiClient.dio.put(
+      '/vehicles/${updated.id}',
+      data: {
+        'vehicleNumber': updated.plateNumber,
+        'brand': updated.make,
+        'model': updated.model,
+      },
+    );
+
+    // Update the local item after the backend confirms the PUT request.
+    // Status and other extra fields remain UI-only because the backend
+    // currently stores only vehicleNumber, brand, and model.
     final index = _vehicles.indexWhere((v) => v.id == updated.id);
     if (index != -1) {
       _vehicles[index] = updated;
       notifyListeners();
-      return true;
     }
-    return false;
   }
 
-  /// Remove a vehicle from the fleet
-  bool deleteVehicle(String id) {
-    final index = _vehicles.indexWhere((v) => v.id == id);
-    if (index != -1) {
-      _vehicles.removeAt(index);
-      notifyListeners();
-      return true;
-    }
-    return false;
-  }
+ Future<void> deleteVehicle(String id) async {
+  // Delete from the backend first.
+  await ApiClient.dio.delete('/vehicles/$id');
 
-  /// Search and filter vehicles by text query, status, or type
+  // Update the local list only after successful backend deletion.
+  final previousLength = _vehicles.length;
+  _vehicles.removeWhere((vehicle) => vehicle.id == id);
+
+  if (_vehicles.length != previousLength) {
+    if (_totalElements > 0) {
+      _totalElements--;
+    }
+
+    _totalPages = _totalElements == 0
+        ? 0
+        : (_totalElements / _pageSize).ceil();
+
+    notifyListeners();
+  }
+}
+
   List<Vehicle> filter({
     String query = '',
     VehicleStatus? statusFilter,
@@ -77,7 +151,6 @@ class VehicleRepository extends ChangeNotifier {
     final cleanQuery = query.trim().toLowerCase();
 
     return _vehicles.where((v) {
-      // 1. Text search across plate, make, model, VIN, driver, location
       final matchesQuery = cleanQuery.isEmpty ||
           v.plateNumber.toLowerCase().contains(cleanQuery) ||
           v.make.toLowerCase().contains(cleanQuery) ||
@@ -86,10 +159,9 @@ class VehicleRepository extends ChangeNotifier {
           (v.assignedDriver?.toLowerCase().contains(cleanQuery) ?? false) ||
           (v.location?.toLowerCase().contains(cleanQuery) ?? false);
 
-      // 2. Status filter
-      final matchesStatus = statusFilter == null || v.status == statusFilter;
+      final matchesStatus =
+          statusFilter == null || v.status == statusFilter;
 
-      // 3. Type filter
       final matchesType = typeFilter == null || v.type == typeFilter;
 
       return matchesQuery && matchesStatus && matchesType;

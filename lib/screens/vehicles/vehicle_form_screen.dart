@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive.dart';
@@ -30,6 +31,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   late VehicleStatus _selectedStatus;
 
   bool _isDirty = false;
+  bool _isSaving = false;
 
   bool get isEditMode => widget.vehicleToEdit != null;
 
@@ -90,70 +92,105 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     }
   }
 
-  void _handleSave() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _handleSave() async {
+    if (_isSaving || !_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
 
     final repo = VehicleRepository();
     final vehicleNumber = _vehicleNumberController.text.trim();
     final brand = _brandController.text.trim();
     final model = _modelController.text.trim();
 
-    if (isEditMode) {
-      final updatedVehicle = widget.vehicleToEdit!.copyWith(
-        plateNumber: vehicleNumber,
-        make: brand,
-        model: model,
-        status: _selectedStatus,
-      );
-      repo.updateVehicle(updatedVehicle);
+    try {
+      if (isEditMode) {
+        final updatedVehicle = widget.vehicleToEdit!.copyWith(
+          plateNumber: vehicleNumber,
+          make: brand,
+          model: model,
+          status: _selectedStatus,
+        );
+
+        await repo.updateVehicle(updatedVehicle);
+      } else {
+        final newVehicle = Vehicle(
+          id: 'temporary-id',
+          plateNumber: vehicleNumber,
+          vin: 'VIN-${vehicleNumber.replaceAll(RegExp(r'[^A-Za-z0-9]'), '')}',
+          make: brand,
+          model: model,
+          year: DateTime.now().year,
+          type: VehicleType.truck,
+          status: _selectedStatus,
+          fuelType: FuelType.diesel,
+          mileage: 0,
+          assignedDriver: null,
+          location: 'Central Depot',
+          lastServiceDate: DateTime.now(),
+        );
+
+        await repo.addVehicle(newVehicle);
+      }
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const Icon(
+                Icons.check_circle_outline,
+                color: Colors.white,
+                size: 30,
+              ),
               const SizedBox(width: 10),
-              Text('Vehicle "$vehicleNumber" ($brand $model) updated successfully.'),
+              Expanded(
+                child: Text(
+                  isEditMode
+                      ? 'Vehicle "$vehicleNumber" ($brand $model) updated successfully.'
+                      : 'New vehicle "$vehicleNumber" ($brand $model) registered.',
+                ),
+              ),
             ],
           ),
           backgroundColor: AppColors.statusActive,
           behavior: SnackBarBehavior.floating,
         ),
       );
-    } else {
-      final newVehicle = Vehicle(
-        id: 'veh-${DateTime.now().millisecondsSinceEpoch % 10000}',
-        plateNumber: vehicleNumber,
-        vin: 'VIN-${vehicleNumber.replaceAll(RegExp(r'[^A-Za-z0-9]'), '')}',
-        make: brand,
-        model: model,
-        year: DateTime.now().year,
-        type: VehicleType.truck,
-        status: _selectedStatus,
-        fuelType: FuelType.diesel,
-        mileage: 0,
-        assignedDriver: null,
-        location: 'Central Depot',
-        lastServiceDate: DateTime.now(),
-      );
-      repo.addVehicle(newVehicle);
+
+      Navigator.of(context).pop();
+    } on DioException catch (e) {
+      if (!mounted) return;
+
+      final responseData = e.response?.data;
+      final message = responseData is Map
+          ? (responseData['detail'] ??
+              responseData['message'] ??
+              'Failed to ${isEditMode ? 'update' : 'register'} vehicle.')
+          : 'Failed to ${isEditMode ? 'update' : 'register'} vehicle. Please try again.';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Text('New vehicle "$vehicleNumber" ($brand $model) registered.'),
-            ],
-          ),
-          backgroundColor: AppColors.statusActive,
+          content: Text(message.toString()),
+          backgroundColor: AppColors.statusOutOfService,
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: $e'),
+          backgroundColor: AppColors.statusOutOfService,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
-
-    Navigator.of(context).pop();
   }
 
   @override
@@ -195,9 +232,17 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: ElevatedButton.icon(
-              onPressed: _handleSave,
-              icon: const Icon(Icons.check, size: 18),
-              label: Text(isEditMode ? 'Save Changes' : 'Register Vehicle'),
+              onPressed: _isSaving ? null : _handleSave,
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check, size: 18),
+              label: Text(_isSaving
+                  ? 'Saving...'
+                  : (isEditMode ? 'Save Changes' : 'Register Vehicle')),
             ),
           ),
         ],
@@ -620,9 +665,17 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ElevatedButton.icon(
-            onPressed: _handleSave,
-            icon: const Icon(Icons.check, size: 18),
-            label: Text(isEditMode ? 'Save Changes' : 'Register Vehicle'),
+            onPressed: _isSaving ? null : _handleSave,
+            icon: _isSaving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.check, size: 18),
+            label: Text(_isSaving
+                ? 'Saving...'
+                : (isEditMode ? 'Save Changes' : 'Register Vehicle')),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
@@ -648,9 +701,17 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         ),
         const SizedBox(width: 12),
         ElevatedButton.icon(
-          onPressed: _handleSave,
-          icon: const Icon(Icons.check, size: 18),
-          label: Text(isEditMode ? 'Save Changes' : 'Register Vehicle'),
+          onPressed: _isSaving ? null : _handleSave,
+          icon: _isSaving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.check, size: 18),
+          label: Text(_isSaving
+              ? 'Saving...'
+              : (isEditMode ? 'Save Changes' : 'Register Vehicle')),
         ),
       ],
     );

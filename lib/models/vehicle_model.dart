@@ -198,4 +198,19 @@ class Vehicle {
           : null,
     );
   }
+
+  factory Vehicle.fromApiJson(Map<String, dynamic> json) {
+  return Vehicle(
+    id: json['id'].toString(),
+    vin: '',
+    plateNumber: json['vehicleNumber'] as String,
+    make: json['brand'] as String,
+    model: json['model'] as String,
+    year: DateTime.now().year,
+    type: VehicleType.sedan,
+    status: VehicleStatus.active,
+    fuelType: FuelType.petrol,
+    mileage: 0,
+  );
+}
 }
